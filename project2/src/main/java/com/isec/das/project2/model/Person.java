@@ -6,15 +6,17 @@ import lombok.Data; // Import Lombok @Data annotation for getters, setters, toSt
 import java.util.List; // Import List interface for collections
 
 @Entity // Marks this class as a JPA entity, meaning it maps to a database table
-@Data // Lombok annotation to automatically generate getters, setters, equals, hashcode, and toString methods
+@Data // Lombok annotation to automatically generate getters, setters, equals,
+      // hashcode, and toString methods
 public class Person { // Class definition for the Person entity
     @Id // Marks this field as the primary key of the entity
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configures the way the primary key is generated (auto-increment)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configures the way the primary key is generated
+                                                        // (auto-increment)
     private Long id; // Unique identifier for the person
 
     private String name; // Name of the person
     private String email; // Email of the person
 
-    @ManyToMany(mappedBy = "registeredUsers") // Defines a many-to-many relationship with Library. 'mappedBy' indicates the owning side is in Library
-    private List<Library> libraries; // List of libraries this person is registered in
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Registration> registrations; // List of registrations (Association Resource)
 }

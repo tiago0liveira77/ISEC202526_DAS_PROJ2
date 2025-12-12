@@ -6,23 +6,21 @@ import lombok.Data; // Import Lombok @Data annotation for getters, setters, toSt
 import java.util.List; // Import List interface for collections
 
 @Entity // Marks this class as a JPA entity, meaning it maps to a database table
-@Data // Lombok annotation to automatically generate getters, setters, equals, hashcode, and toString methods
+@Data // Lombok annotation to automatically generate getters, setters, equals,
+      // hashcode, and toString methods
 public class Library { // Class definition for the Library entity
     @Id // Marks this field as the primary key of the entity
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configures the way the primary key is generated (auto-increment)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Configures the way the primary key is generated
+                                                        // (auto-increment)
     private Long id; // Unique identifier for the library
 
     private String name; // Name of the library
     private String location; // Location of the library
 
-    @OneToMany(mappedBy = "library") // Defines a one-to-many relationship with BookCopy. 'mappedBy' indicates the owning side is in BookCopy
+    @OneToMany(mappedBy = "library") // Defines a one-to-many relationship with BookCopy. 'mappedBy' indicates the
+                                     // owning side is in BookCopy
     private List<BookCopy> bookCopies; // List of book copies available in this library
 
-    @ManyToMany // Defines a many-to-many relationship with Person
-    @JoinTable( // Configures the join table for the many-to-many relationship
-        name = "library_registrations", // Name of the join table
-        joinColumns = @JoinColumn(name = "library_id"), // Column in the join table that references this entity (Library)
-        inverseJoinColumns = @JoinColumn(name = "person_id") // Column in the join table that references the other entity (Person)
-    )
-    private List<Person> registeredUsers; // List of users registered in this library
+    @OneToMany(mappedBy = "library", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Registration> registrations; // List of registrations (Association Resource)
 }

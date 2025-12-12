@@ -1,90 +1,142 @@
-package com.isec.das.project2.controller; // Package declaration for controller classes
+package com.isec.das.project2.controller;
 
-import com.isec.das.project2.model.Library; // Import Library model
-import com.isec.das.project2.service.LibraryService; // Import LibraryService
-import com.isec.das.project2.util.FieldMaskUtil; // Import FieldMaskUtil
-import org.springframework.beans.factory.annotation.Autowired; // Import Autowired annotation
-import org.springframework.data.domain.Page; // Import Page
-import org.springframework.data.domain.PageRequest; // Import PageRequest
-import org.springframework.data.domain.Pageable; // Import Pageable
-import org.springframework.http.ResponseEntity; // Import ResponseEntity
-import org.springframework.web.bind.annotation.*; // Import Spring Web annotations
+import com.isec.das.project2.model.Library;
+import com.isec.das.project2.service.LibraryService;
+import com.isec.das.project2.util.FieldMaskUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List; // Import List
-import java.util.Map; // Import Map
-import java.util.stream.Collectors; // Import Collectors
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@RestController // Marks this class as a REST controller
-@RequestMapping("/libraries") // Maps requests starting with /libraries to this controller
-public class LibraryController { // Controller class for Library resources
+@RestController
+@RequestMapping("/libraries")
+public class LibraryController {
 
-    @Autowired // Injects the LibraryService bean
-    private LibraryService libraryService; // Service for library operations
+    @Autowired
+    private LibraryService libraryService;
 
-    @GetMapping // Maps GET requests to this method
-    public ResponseEntity<List<Map<String, Object>>> getAllLibraries( // Method to get all libraries
-            @RequestParam(required = false) String location, // Optional query parameter for location filtering
-            @RequestParam(defaultValue = "0") int page, // Query parameter for page number, default 0
-            @RequestParam(defaultValue = "10") int size, // Query parameter for page size, default 10
-            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllLibraries(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String pageToken,
+            @RequestParam(defaultValue = "10") int maxResults,
+            @RequestParam(required = false) String fields) {
 
-        Pageable pageable = PageRequest.of(page, size); // Create Pageable object
-        Page<Library> libraries = libraryService.findAll(location, pageable); // Get paginated libraries from service
+        int page = com.isec.das.project2.util.PaginationUtil.getPageFromToken(pageToken);
+        Pageable pageable = PageRequest.of(page, maxResults);
+        Page<Library> libraries = libraryService.findAll(location, pageable);
 
-        List<Map<String, Object>> response = libraries.getContent().stream() // Stream the content of the page
-                .map(library -> FieldMaskUtil.applyFieldMask(library, fields)) // Apply field mask to each library
-                .collect(Collectors.toList()); // Collect results into a list
+        List<Map<String, Object>> content = libraries.getContent().stream()
+                .map(library -> FieldMaskUtil.applyFieldMask(library, fields))
+                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response); // Return the response with 200 OK status
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("data", content);
+
+        String nextPageToken = com.isec.das.project2.util.PaginationUtil.getNextPageToken(page,
+                libraries.getNumberOfElements(), maxResults);
+        if (nextPageToken != null) {
+            response.put("nextPageToken", nextPageToken);
+        }
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}") // Maps GET requests with ID to this method
-    public ResponseEntity<Map<String, Object>> getLibraryById( // Method to get a library by ID
-            @PathVariable Long id, // Path variable for library ID
-            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
-        return libraryService.findById(id) // Find library by ID
-                .map(library -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(library, fields))) // If found, apply
-                                                                                                  // mask and return 200
-                                                                                                  // OK
-                .orElse(ResponseEntity.notFound().build()); // If not found, return 404 Not Found
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getLibraryById(
+            @PathVariable Long id,
+            @RequestParam(required = false) String fields) {
+        return libraryService.findById(id)
+                .map(library -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(library, fields)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping // Maps POST requests to this method
-    public ResponseEntity<Library> createLibrary(@RequestBody Library library) { // Method to create a new library
-        return ResponseEntity.ok(libraryService.save(library)); // Save library and return 200 OK
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createLibrary(@RequestBody Library library,
+            @RequestParam(required = false) String fields) {
+        Library saved = libraryService.save(library);
+        return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
     }
 
-    @PostMapping("/{id}/registrations") // Maps POST requests for registrations to this method
-    public ResponseEntity<Void> registerUser(@PathVariable Long id, @RequestParam Long userId) { // Method to register a
-                                                                                                 // user
-        libraryService.registerUser(id, userId); // Register user in library
-        return ResponseEntity.ok().build(); // Return 200 OK
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> replaceLibrary(@PathVariable Long id, @RequestBody Library library,
+            @RequestParam(required = false) String fields) {
+        return libraryService.findById(id)
+                .map(existing -> {
+                    library.setId(id);
+                    Library saved = libraryService.save(library);
+                    return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}/registrations") // Maps DELETE requests for registrations to this method
-    public ResponseEntity<Void> unregisterUser(@PathVariable Long id, @RequestParam Long userId) { // Method to
-                                                                                                   // unregister a user
-        libraryService.unregisterUser(id, userId); // Unregister user from library
-        return ResponseEntity.ok().build(); // Return 200 OK
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateLibrary(@PathVariable Long id,
+            @RequestBody Map<String, Object> updates, @RequestParam(required = false) String fields) {
+        return libraryService.findById(id)
+                .map(existing -> {
+                    updates.forEach((k, v) -> {
+                        try {
+                            java.lang.reflect.Field field = org.springframework.util.ReflectionUtils
+                                    .findField(Library.class, k);
+                            if (field != null) {
+                                field.setAccessible(true);
+                                field.set(existing, v);
+                            }
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    });
+                    Library saved = libraryService.save(existing);
+                    return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/books") // Maps GET requests for library books to this method
-    public ResponseEntity<List<Map<String, Object>>> getLibraryBooks( // Method to get books of a library
-            @PathVariable Long id, // Path variable for library ID
-            @RequestParam(defaultValue = "0") int page, // Query parameter for page number
-            @RequestParam(defaultValue = "10") int size, // Query parameter for page size
-            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteLibrary(@PathVariable Long id) {
+        if (libraryService.findById(id).isPresent()) {
+            libraryService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 
-        Pageable pageable = PageRequest.of(page, size); // Create Pageable object
-        Page<com.isec.das.project2.model.BookCopy> bookCopies = libraryService.getLibraryBooks(id, pageable); // Get
-                                                                                                              // paginated
-                                                                                                              // book
-                                                                                                              // copies
+    @PostMapping("/{id}/registrations")
+    public ResponseEntity<Void> registerUser(@PathVariable Long id, @RequestBody Map<String, Long> body) {
+        if (!body.containsKey("personId")) {
+            return ResponseEntity.badRequest().build();
+        }
+        libraryService.registerUser(id, body.get("personId"));
+        return ResponseEntity.ok().build();
+    }
 
-        List<Map<String, Object>> response = bookCopies.getContent().stream() // Stream content
-                .map(copy -> FieldMaskUtil.applyFieldMask(copy, fields)) // Apply mask
-                .collect(Collectors.toList()); // Collect to list
+    @DeleteMapping("/{id}/registrations/{personId}")
+    public ResponseEntity<Void> unregisterUser(@PathVariable Long id, @PathVariable Long personId) {
+        libraryService.unregisterUser(id, personId);
+        return ResponseEntity.ok().build();
+    }
 
-        return ResponseEntity.ok(response); // Return response
+    @GetMapping("/{id}/books")
+    public ResponseEntity<List<Map<String, Object>>> getLibraryBooks(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String fields) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<com.isec.das.project2.model.BookCopy> bookCopies = libraryService.getLibraryBooks(id, pageable);
+
+        List<Map<String, Object>> response = bookCopies.getContent().stream()
+                .map(copy -> FieldMaskUtil.applyFieldMask(copy, fields))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 }

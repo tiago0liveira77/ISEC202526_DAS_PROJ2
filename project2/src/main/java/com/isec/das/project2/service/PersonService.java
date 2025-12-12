@@ -28,7 +28,8 @@ public class PersonService { // Service class for Person operations
     @Autowired // Injects the BookCopyRepository bean
     private BookCopyRepository bookCopyRepository; // Repository for book copy data access
 
-    public Page<Person> findAll(String name, Pageable pageable) { // Method to find all people, optionally filtered by name, with pagination
+    public Page<Person> findAll(String name, Pageable pageable) { // Method to find all people, optionally filtered by
+                                                                  // name, with pagination
         if (name != null && !name.isEmpty()) { // Check if name filter is provided
             return personRepository.findByNameContaining(name, pageable); // Return filtered people
         }
@@ -43,37 +44,58 @@ public class PersonService { // Service class for Person operations
         return personRepository.save(person); // Saves the person to the database
     }
 
+    public void deleteById(Long id) {
+        personRepository.deleteById(id);
+    }
+
+    @Autowired
+    private com.isec.das.project2.repository.RegistrationRepository registrationRepository;
+
     @Transactional // Ensures this method runs within a database transaction
     public Loan loanBook(Long personId, Long bookCopyId) { // Method to loan a book to a person
-        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found")); // Find person or throw exception
-        BookCopy bookCopy = bookCopyRepository.findById(bookCopyId).orElseThrow(() -> new RuntimeException("BookCopy not found")); // Find book copy or throw exception
+        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found"));
+        BookCopy bookCopy = bookCopyRepository.findById(bookCopyId)
+                .orElseThrow(() -> new RuntimeException("BookCopy not found"));
 
-        if (!person.getLibraries().contains(bookCopy.getLibrary())) { // Check if the person is registered in the library where the book is located
-            throw new RuntimeException("Person is not registered in the library where the book is located"); // Throw exception if not registered
+        // Check registration using repository
+        if (registrationRepository.findByLibraryIdAndPersonId(bookCopy.getLibrary().getId(), personId).isEmpty()) {
+            throw new RuntimeException("Person is not registered in the library where the book is located");
         }
 
         Loan loan = new Loan(); // Create a new Loan object
         loan.setPerson(person); // Set the person for the loan
         loan.setBookCopy(bookCopy); // Set the book copy for the loan
         loan.setLoanDate(LocalDateTime.now()); // Set the loan date to current time
-        
+
         return loanRepository.save(loan); // Save the loan to the database
     }
 
     @Transactional // Ensures this method runs within a database transaction
     public void returnBook(Long loanId) { // Method to return a loaned book
-        Loan loan = loanRepository.findById(loanId).orElseThrow(() -> new RuntimeException("Loan not found")); // Find loan or throw exception
+        Loan loan = loanRepository.findById(loanId).orElseThrow(() -> new RuntimeException("Loan not found")); // Find
+                                                                                                               // loan
+                                                                                                               // or
+                                                                                                               // throw
+                                                                                                               // exception
         loan.setReturnDate(LocalDateTime.now()); // Set the return date to current time
         loanRepository.save(loan); // Save the updated loan to the database
     }
 
     public List<Loan> getCurrentLoans(Long personId) { // Method to get current active loans for a person
-        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found")); // Find person or throw exception
+        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found")); // Find
+                                                                                                                         // person
+                                                                                                                         // or
+                                                                                                                         // throw
+                                                                                                                         // exception
         return loanRepository.findByPersonAndReturnDateIsNull(person); // Return list of active loans
     }
 
     public List<Loan> getLoanHistory(Long personId) { // Method to get loan history for a person
-        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found")); // Find person or throw exception
+        Person person = personRepository.findById(personId).orElseThrow(() -> new RuntimeException("Person not found")); // Find
+                                                                                                                         // person
+                                                                                                                         // or
+                                                                                                                         // throw
+                                                                                                                         // exception
         return loanRepository.findByPerson(person); // Return list of all loans (history)
     }
 }

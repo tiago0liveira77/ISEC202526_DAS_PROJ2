@@ -1,78 +1,130 @@
-package com.isec.das.project2.controller; // Package declaration for controller classes
+package com.isec.das.project2.controller;
 
-import com.isec.das.project2.model.Loan; // Import Loan model
-import com.isec.das.project2.model.Person; // Import Person model
-import com.isec.das.project2.service.PersonService; // Import PersonService
-import com.isec.das.project2.util.FieldMaskUtil; // Import FieldMaskUtil
-import org.springframework.beans.factory.annotation.Autowired; // Import Autowired annotation
-import org.springframework.data.domain.Page; // Import Page
-import org.springframework.data.domain.PageRequest; // Import PageRequest
-import org.springframework.data.domain.Pageable; // Import Pageable
-import org.springframework.http.ResponseEntity; // Import ResponseEntity
-import org.springframework.web.bind.annotation.*; // Import Spring Web annotations
+import com.isec.das.project2.model.Loan;
+import com.isec.das.project2.model.Person;
+import com.isec.das.project2.service.PersonService;
+import com.isec.das.project2.util.FieldMaskUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List; // Import List
-import java.util.Map; // Import Map
-import java.util.stream.Collectors; // Import Collectors
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@RestController // Marks this class as a REST controller
-@RequestMapping("/people") // Maps requests starting with /people to this controller
-public class PersonController { // Controller class for Person resources
+@RestController
+@RequestMapping("/people")
+public class PersonController {
 
-    @Autowired // Injects the PersonService bean
-    private PersonService personService; // Service for person operations
+    @Autowired
+    private PersonService personService;
 
-    @GetMapping // Maps GET requests to this method
-    public ResponseEntity<List<Map<String, Object>>> getAllPeople( // Method to get all people
-            @RequestParam(required = false) String name, // Optional query parameter for name filtering
-            @RequestParam(defaultValue = "0") int page, // Query parameter for page number, default 0
-            @RequestParam(defaultValue = "10") int size, // Query parameter for page size, default 10
-            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllPeople(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String pageToken,
+            @RequestParam(defaultValue = "10") int maxResults,
+            @RequestParam(required = false) String fields) {
 
-        Pageable pageable = PageRequest.of(page, size); // Create Pageable object
-        Page<Person> people = personService.findAll(name, pageable); // Get paginated people from service
+        int page = com.isec.das.project2.util.PaginationUtil.getPageFromToken(pageToken);
+        Pageable pageable = PageRequest.of(page, maxResults);
+        Page<Person> people = personService.findAll(name, pageable);
 
-        List<Map<String, Object>> response = people.getContent().stream() // Stream the content of the page
-                .map(person -> FieldMaskUtil.applyFieldMask(person, fields)) // Apply field mask to each person
-                .collect(Collectors.toList()); // Collect results into a list
+        List<Map<String, Object>> content = people.getContent().stream()
+                .map(person -> FieldMaskUtil.applyFieldMask(person, fields))
+                .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response); // Return the response with 200 OK status
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("data", content);
+
+        String nextPageToken = com.isec.das.project2.util.PaginationUtil.getNextPageToken(page,
+                people.getNumberOfElements(), maxResults);
+        if (nextPageToken != null) {
+            response.put("nextPageToken", nextPageToken);
+        }
+
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}") // Maps GET requests with ID to this method
-    public ResponseEntity<Map<String, Object>> getPersonById( // Method to get a person by ID
-            @PathVariable Long id, // Path variable for person ID
-            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
-        return personService.findById(id) // Find person by ID
-                .map(person -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(person, fields))) // If found, apply mask
-                                                                                                // and return 200 OK
-                .orElse(ResponseEntity.notFound().build()); // If not found, return 404 Not Found
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> getPersonById(
+            @PathVariable Long id,
+            @RequestParam(required = false) String fields) {
+        return personService.findById(id)
+                .map(person -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(person, fields)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping // Maps POST requests to this method
-    public ResponseEntity<Person> createPerson(@RequestBody Person person) { // Method to create a new person
-        return ResponseEntity.ok(personService.save(person)); // Save person and return 200 OK
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> createPerson(@RequestBody Person person,
+            @RequestParam(required = false) String fields) {
+        Person saved = personService.save(person);
+        return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
     }
 
-    @PostMapping("/{id}/loans") // Maps POST requests for creating loans to this method
-    public ResponseEntity<Loan> loanBook(@PathVariable Long id, @RequestParam Long bookCopyId) { // Method to loan a
-                                                                                                 // book
-        return ResponseEntity.ok(personService.loanBook(id, bookCopyId)); // Create loan and return 200 OK
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> replacePerson(@PathVariable Long id, @RequestBody Person person,
+            @RequestParam(required = false) String fields) {
+        return personService.findById(id)
+                .map(existing -> {
+                    person.setId(id);
+                    Person saved = personService.save(person);
+                    return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}/loans/{loanId}/return") // Maps POST requests for returning books to this method
-    public ResponseEntity<Void> returnBook(@PathVariable Long id, @PathVariable Long loanId) { // Method to return a
-                                                                                               // book
-        // Ideally we should verify if the loan belongs to the person (id), but for
-        // simplicity we trust loanId
-        personService.returnBook(loanId); // Return book
-        return ResponseEntity.ok().build(); // Return 200 OK
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updatePerson(@PathVariable Long id,
+            @RequestBody Map<String, Object> updates, @RequestParam(required = false) String fields) {
+        return personService.findById(id)
+                .map(existing -> {
+                    updates.forEach((k, v) -> {
+                        try {
+                            java.lang.reflect.Field field = org.springframework.util.ReflectionUtils
+                                    .findField(Person.class, k);
+                            if (field != null) {
+                                field.setAccessible(true);
+                                field.set(existing, v);
+                            }
+                        } catch (Exception e) {
+                            // ignore
+                        }
+                    });
+                    Person saved = personService.save(existing);
+                    return ResponseEntity.ok(FieldMaskUtil.applyFieldMask(saved, fields));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/{id}/loans") // Maps GET requests for loans to this method
-    public ResponseEntity<List<Loan>> getLoans( // Method to get loans
-            @PathVariable Long id, // Person ID
-            @RequestParam(required = false) Boolean active) { // Optional filter for active loans
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePerson(@PathVariable Long id) {
+        if (personService.findById(id).isPresent()) {
+            personService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{id}/loans")
+    public ResponseEntity<Loan> loanBook(@PathVariable Long id, @RequestParam Long bookCopyId) {
+        return ResponseEntity.ok(personService.loanBook(id, bookCopyId));
+    }
+
+    // Custom Method: Return Book
+    @PostMapping("/{id}/loans/{loanId}:return")
+    public ResponseEntity<Void> returnBook(@PathVariable Long id, @PathVariable Long loanId) {
+        personService.returnBook(loanId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/loans")
+    public ResponseEntity<List<Loan>> getLoans(
+            @PathVariable Long id,
+            @RequestParam(required = false) Boolean active) {
 
         if (active != null) {
             if (active) {
@@ -81,15 +133,6 @@ public class PersonController { // Controller class for Person resources
                 return ResponseEntity.ok(personService.getLoanHistory(id));
             }
         }
-        // If active is null, maybe return all? For now let's default to current or
-        // history?
-        // Let's return history (which implies all past loans, but maybe not current?)
-        // The service distinction is:
-        // getCurrentLoans -> returnDate is null
-        // getLoanHistory -> returnDate is NOT null
-        // So to get ALL, we would need a new method.
-        // For now, let's default to current if not specified, or support both.
-        // Let's assume default is current.
         return ResponseEntity.ok(personService.getCurrentLoans(id));
     }
 }
