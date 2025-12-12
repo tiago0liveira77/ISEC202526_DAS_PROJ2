@@ -21,7 +21,11 @@ public class LibraryService { // Service class for Library operations
     @Autowired // Injects the PersonRepository bean
     private PersonRepository personRepository; // Repository for person data access
 
-    public Page<Library> findAll(String location, Pageable pageable) { // Method to find all libraries, optionally filtered by location, with pagination
+    @Autowired
+    private com.isec.das.project2.repository.BookCopyRepository bookCopyRepository;
+
+    public Page<Library> findAll(String location, Pageable pageable) { // Method to find all libraries, optionally
+                                                                       // filtered by location, with pagination
         if (location != null && !location.isEmpty()) { // Check if location filter is provided
             return libraryRepository.findByLocationContaining(location, pageable); // Return filtered libraries
         }
@@ -38,25 +42,51 @@ public class LibraryService { // Service class for Library operations
 
     @Transactional // Ensures this method runs within a database transaction
     public void registerUser(Long libraryId, Long userId) { // Method to register a user in a library
-        Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new RuntimeException("Library not found")); // Find library or throw exception
-        Person person = personRepository.findById(userId).orElseThrow(() -> new RuntimeException("Person not found")); // Find person or throw exception
-        
+        Library library = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> new RuntimeException("Library not found")); // Find library or throw exception
+        Person person = personRepository.findById(userId).orElseThrow(() -> new RuntimeException("Person not found")); // Find
+                                                                                                                       // person
+                                                                                                                       // or
+                                                                                                                       // throw
+                                                                                                                       // exception
+
         library.getRegisteredUsers().add(person); // Add person to the library's registered users list
-        person.getLibraries().add(library); // Add library to the person's libraries list (maintain bidirectional relationship)
-        
+        person.getLibraries().add(library); // Add library to the person's libraries list (maintain bidirectional
+                                            // relationship)
+
         libraryRepository.save(library); // Save the updated library entity
         personRepository.save(person); // Save the updated person entity
     }
 
     @Transactional // Ensures this method runs within a database transaction
     public void unregisterUser(Long libraryId, Long userId) { // Method to unregister a user from a library
-        Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new RuntimeException("Library not found")); // Find library or throw exception
-        Person person = personRepository.findById(userId).orElseThrow(() -> new RuntimeException("Person not found")); // Find person or throw exception
+        Library library = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> new RuntimeException("Library not found")); // Find library or throw exception
+        Person person = personRepository.findById(userId).orElseThrow(() -> new RuntimeException("Person not found")); // Find
+                                                                                                                       // person
+                                                                                                                       // or
+                                                                                                                       // throw
+                                                                                                                       // exception
 
         library.getRegisteredUsers().remove(person); // Remove person from the library's registered users list
         person.getLibraries().remove(library); // Remove library from the person's libraries list
 
         libraryRepository.save(library); // Save the updated library entity
         personRepository.save(person); // Save the updated person entity
+    }
+
+    public Page<com.isec.das.project2.model.BookCopy> getLibraryBooks(Long libraryId, Pageable pageable) { // Method to
+                                                                                                           // get books
+                                                                                                           // (copies)
+                                                                                                           // of a
+                                                                                                           // library
+        Library library = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> new RuntimeException("Library not found")); // Find library or throw exception
+        // Assuming we want to return BookCopies which represent the books in the
+        // library
+        // We need a repository method for this or filter the list.
+        // Better to use a repository method in BookCopyRepository.
+        // For now, let's assume we inject BookCopyRepository here.
+        return bookCopyRepository.findByLibrary(library, pageable);
     }
 }

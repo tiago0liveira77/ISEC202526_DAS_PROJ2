@@ -27,14 +27,14 @@ public class LibraryController { // Controller class for Library resources
             @RequestParam(defaultValue = "0") int page, // Query parameter for page number, default 0
             @RequestParam(defaultValue = "10") int size, // Query parameter for page size, default 10
             @RequestParam(required = false) String fields) { // Optional query parameter for field masking
-        
+
         Pageable pageable = PageRequest.of(page, size); // Create Pageable object
         Page<Library> libraries = libraryService.findAll(location, pageable); // Get paginated libraries from service
-        
+
         List<Map<String, Object>> response = libraries.getContent().stream() // Stream the content of the page
                 .map(library -> FieldMaskUtil.applyFieldMask(library, fields)) // Apply field mask to each library
                 .collect(Collectors.toList()); // Collect results into a list
-        
+
         return ResponseEntity.ok(response); // Return the response with 200 OK status
     }
 
@@ -43,7 +43,9 @@ public class LibraryController { // Controller class for Library resources
             @PathVariable Long id, // Path variable for library ID
             @RequestParam(required = false) String fields) { // Optional query parameter for field masking
         return libraryService.findById(id) // Find library by ID
-                .map(library -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(library, fields))) // If found, apply mask and return 200 OK
+                .map(library -> ResponseEntity.ok(FieldMaskUtil.applyFieldMask(library, fields))) // If found, apply
+                                                                                                  // mask and return 200
+                                                                                                  // OK
                 .orElse(ResponseEntity.notFound().build()); // If not found, return 404 Not Found
     }
 
@@ -53,14 +55,36 @@ public class LibraryController { // Controller class for Library resources
     }
 
     @PostMapping("/{id}/registrations") // Maps POST requests for registrations to this method
-    public ResponseEntity<Void> registerUser(@PathVariable Long id, @RequestParam Long userId) { // Method to register a user
+    public ResponseEntity<Void> registerUser(@PathVariable Long id, @RequestParam Long userId) { // Method to register a
+                                                                                                 // user
         libraryService.registerUser(id, userId); // Register user in library
         return ResponseEntity.ok().build(); // Return 200 OK
     }
 
     @DeleteMapping("/{id}/registrations") // Maps DELETE requests for registrations to this method
-    public ResponseEntity<Void> unregisterUser(@PathVariable Long id, @RequestParam Long userId) { // Method to unregister a user
+    public ResponseEntity<Void> unregisterUser(@PathVariable Long id, @RequestParam Long userId) { // Method to
+                                                                                                   // unregister a user
         libraryService.unregisterUser(id, userId); // Unregister user from library
         return ResponseEntity.ok().build(); // Return 200 OK
+    }
+
+    @GetMapping("/{id}/books") // Maps GET requests for library books to this method
+    public ResponseEntity<List<Map<String, Object>>> getLibraryBooks( // Method to get books of a library
+            @PathVariable Long id, // Path variable for library ID
+            @RequestParam(defaultValue = "0") int page, // Query parameter for page number
+            @RequestParam(defaultValue = "10") int size, // Query parameter for page size
+            @RequestParam(required = false) String fields) { // Optional query parameter for field masking
+
+        Pageable pageable = PageRequest.of(page, size); // Create Pageable object
+        Page<com.isec.das.project2.model.BookCopy> bookCopies = libraryService.getLibraryBooks(id, pageable); // Get
+                                                                                                              // paginated
+                                                                                                              // book
+                                                                                                              // copies
+
+        List<Map<String, Object>> response = bookCopies.getContent().stream() // Stream content
+                .map(copy -> FieldMaskUtil.applyFieldMask(copy, fields)) // Apply mask
+                .collect(Collectors.toList()); // Collect to list
+
+        return ResponseEntity.ok(response); // Return response
     }
 }
