@@ -39,7 +39,12 @@ public class RegistoController {
             return ResponseEntity.badRequest().build();
         }
 
-        Registo novo = registoRepository.save(new Registo(pessoa, biblioteca, EstadoRegisto.ATIVO, LocalDate.now()));
+        Registo novo = registoRepository.save(Registo.builder()
+                .pessoa(pessoa)
+                .biblioteca(biblioteca)
+                .estado(EstadoRegisto.ATIVO)
+                .dataRegisto(LocalDate.now())
+                .build());
 
         URI location = URI.create("/registos/" + novo.getId());
         return ResponseEntity.created(location).body(novo);

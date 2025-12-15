@@ -45,9 +45,10 @@ public class FullTextController {
         FullText ft = fullTextRepository.findById(id).orElse(null);
 
         if (ft == null) {
-            ft = new FullText();
-            ft.setLivro(livro);
-            ft.setTexto(novoTexto);
+            ft = FullText.builder()
+                .livro(livro)
+                .texto((novoTexto))
+                .build();
         } else {
             ft.setTexto(novoTexto);
         }

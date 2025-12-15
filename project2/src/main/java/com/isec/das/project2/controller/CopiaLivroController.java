@@ -40,7 +40,11 @@ public class CopiaLivroController {
             return ResponseEntity.badRequest().build();
         }
 
-        CopiaLivro copia = copiaRepository.save(new CopiaLivro(livro, biblioteca));
+        CopiaLivro copia = copiaRepository.save(
+                CopiaLivro.builder()
+                        .livro(livro)
+                        .biblioteca(biblioteca)
+                        .build());
         URI location = URI.create("/copias/" + copia.getId());
         return ResponseEntity.created(location).body(copia);
     }

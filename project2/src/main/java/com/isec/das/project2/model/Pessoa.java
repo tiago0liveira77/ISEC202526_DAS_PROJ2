@@ -1,10 +1,11 @@
 package com.isec.das.project2.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Pessoa {
 
     @Id
@@ -17,4 +18,9 @@ public class Pessoa {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Builder
+    public Pessoa(String nome, String email) {
+        this.nome = nome;
+        this.email = email;
+    }
 }

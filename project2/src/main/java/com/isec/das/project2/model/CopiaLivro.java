@@ -5,7 +5,6 @@ import lombok.*;
 
 @Entity
 @Data
-@RequiredArgsConstructor
 @NoArgsConstructor
 public class CopiaLivro {
 
@@ -14,10 +13,14 @@ public class CopiaLivro {
     private Long id;
 
     @ManyToOne(optional = false)
-    @NonNull
     private Livro livro;
 
     @ManyToOne(optional = false)
-    @NonNull
     private Biblioteca biblioteca;
+
+    @Builder
+    public CopiaLivro(Livro livro, Biblioteca biblioteca) {
+        this.livro = livro;
+        this.biblioteca = biblioteca;
+    }
 }

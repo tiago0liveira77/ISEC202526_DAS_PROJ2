@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -56,14 +57,14 @@ public class EmprestimoController {
         }
 
         // criar empréstimo
-        Emprestimo e = new Emprestimo();
-        e.setPessoa(pessoa);
-        e.setCopiaLivro(copia);
-        e.setEstado(EstadoEmprestimo.ATIVO);
-        e.setDataEmprestimo(LocalDate.now());
-        e.setDataDevolucao(null);
-
-        return ResponseEntity.ok(emprestimoRepository.save(e));
+        Emprestimo e = emprestimoRepository.save(Emprestimo.builder()
+                .pessoa(pessoa)
+                .copiaLivro(copia)
+                .estado(EstadoEmprestimo.ATIVO)
+                .dataEmprestimo(LocalDate.now())
+                .build());
+        URI location = URI.create("/emprestimos/" + e.getId());
+        return ResponseEntity.created(location).body(e);
     }
 
     @GetMapping

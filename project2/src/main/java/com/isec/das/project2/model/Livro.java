@@ -1,10 +1,11 @@
 package com.isec.das.project2.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Livro {
 
     @Id
@@ -16,4 +17,10 @@ public class Livro {
 
     @Column(nullable = false)
     private String autor;
+
+    @Builder
+    public Livro(String autor, String titulo) {
+        this.autor = autor;
+        this.titulo = titulo;
+    }
 }
