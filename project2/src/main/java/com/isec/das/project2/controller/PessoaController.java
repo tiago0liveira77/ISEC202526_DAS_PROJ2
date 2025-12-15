@@ -5,6 +5,7 @@ import com.isec.das.project2.repository.PessoaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -42,8 +43,10 @@ public class PessoaController {
     }
 
     @PostMapping
-    public Pessoa criar(@RequestBody Pessoa pessoa) {
-        return pessoaRepository.save(pessoa);
+    public ResponseEntity<Pessoa> criar(@RequestBody Pessoa pessoa) {
+        Pessoa novo = pessoaRepository.save(pessoa);
+        URI location = URI.create("/pessoas/" + novo.getId());
+        return ResponseEntity.created(location).body(novo);
     }
 
     @PatchMapping("/{id}")

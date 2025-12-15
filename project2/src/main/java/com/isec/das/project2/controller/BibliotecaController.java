@@ -4,6 +4,8 @@ import com.isec.das.project2.model.Biblioteca;
 import com.isec.das.project2.repository.BibliotecaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -41,8 +43,10 @@ public class BibliotecaController {
     }
 
     @PostMapping
-    public Biblioteca criar(@RequestBody Biblioteca biblioteca) {
-        return bibliotecaRepository.save(biblioteca);
+    public ResponseEntity<Biblioteca> criar(@RequestBody Biblioteca biblioteca) {
+        Biblioteca novo = bibliotecaRepository.save(biblioteca);
+        URI location = URI.create("/bibliotecas/" + novo.getId());
+        return ResponseEntity.created(location).body(novo);
     }
 
     @PatchMapping("/{id}")

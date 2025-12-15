@@ -6,6 +6,7 @@ import com.isec.das.project2.util.EstadoRegisto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -38,13 +39,10 @@ public class RegistoController {
             return ResponseEntity.badRequest().build();
         }
 
-        Registo registo = new Registo();
-        registo.setPessoa(pessoa);
-        registo.setBiblioteca(biblioteca);
-        registo.setEstado(EstadoRegisto.ATIVO);
-        registo.setDataRegisto(LocalDate.now());
+        Registo novo = registoRepository.save(new Registo(pessoa, biblioteca, EstadoRegisto.ATIVO, LocalDate.now()));
 
-        return ResponseEntity.ok(registoRepository.save(registo));
+        URI location = URI.create("/registos/" + novo.getId());
+        return ResponseEntity.created(location).body(novo);
     }
 
     @GetMapping

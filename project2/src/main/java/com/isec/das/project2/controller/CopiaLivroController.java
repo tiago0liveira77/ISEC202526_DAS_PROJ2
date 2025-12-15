@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.isec.das.project2.util.EstadoEmprestimo;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -39,11 +40,9 @@ public class CopiaLivroController {
             return ResponseEntity.badRequest().build();
         }
 
-        CopiaLivro copia = new CopiaLivro();
-        copia.setLivro(livro);
-        copia.setBiblioteca(biblioteca);
-
-        return ResponseEntity.ok(copiaRepository.save(copia));
+        CopiaLivro copia = copiaRepository.save(new CopiaLivro(livro, biblioteca));
+        URI location = URI.create("/copias/" + copia.getId());
+        return ResponseEntity.created(location).body(copia);
     }
 
     @GetMapping

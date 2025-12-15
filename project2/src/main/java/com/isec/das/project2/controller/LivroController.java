@@ -5,6 +5,7 @@ import com.isec.das.project2.repository.LivroRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -43,8 +44,10 @@ public class LivroController {
     }
 
     @PostMapping
-    public Livro criar(@RequestBody Livro livro) {
-        return livroRepository.save(livro);
+    public  ResponseEntity<Livro> criar(@RequestBody Livro livro) {
+        Livro novo = livroRepository.save(livro);
+        URI location = URI.create("/livros/" + novo.getId());
+        return ResponseEntity.created(location).body(novo);
     }
 
     @PatchMapping("/{id}")

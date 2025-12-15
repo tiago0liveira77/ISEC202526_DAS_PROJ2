@@ -3,6 +3,7 @@ package com.isec.das.project2.controller;
 import com.isec.das.project2.model.*;
 import com.isec.das.project2.repository.*;
 import com.isec.das.project2.util.EstadoEmprestimo;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,7 +52,7 @@ public class EmprestimoController {
                 );
 
         if (!registado) {
-            return ResponseEntity.status(403).build(); // Forbidden
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         // criar empréstimo
@@ -95,9 +96,12 @@ public class EmprestimoController {
     }
 
 
-    @PatchMapping("/{id}/devolver")
-    public ResponseEntity<Emprestimo> devolver(@PathVariable Long id) {
+    @PatchMapping("/{id}:devolver")
+    public ResponseEntity<?> devolver(@PathVariable Long id) {
         return emprestimoRepository.findById(id).map(emp -> {
+            if (emp.getEstado() != EstadoEmprestimo.ATIVO) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
             emp.setEstado(EstadoEmprestimo.DEVOLVIDO);
             emp.setDataDevolucao(LocalDate.now());
             return ResponseEntity.ok(emprestimoRepository.save(emp));
