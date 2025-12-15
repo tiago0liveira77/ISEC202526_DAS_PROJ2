@@ -97,7 +97,7 @@ public class EmprestimoController {
     }
 
 
-    @PatchMapping("/{id}:devolver")
+    @PostMapping("/{id}:devolver")
     public ResponseEntity<?> devolver(@PathVariable Long id) {
         return emprestimoRepository.findById(id).map(emp -> {
             if (emp.getEstado() != EstadoEmprestimo.ATIVO) {
