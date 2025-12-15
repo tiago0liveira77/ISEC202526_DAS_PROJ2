@@ -2,11 +2,17 @@ package com.isec.das.project2.controller;
 
 import com.isec.das.project2.model.Livro;
 import com.isec.das.project2.repository.LivroRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/livros")
@@ -19,21 +25,28 @@ public class LivroController {
     }
 
     @GetMapping
-    public List<Livro> listar( @RequestParam(defaultValue = "0") int page,
-                               @RequestParam(defaultValue = "10") int size) {
+    public Map<String, Object> listar(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Set<String> fields) {
 
-        size = Math.min(size, 10); // máximo 10
+        size = Math.min(size, 10);
 
-        List<Livro> todos = livroRepository.findAll();
-        int start = page * size;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Livro> pageResult = livroRepository.findAll(pageable);
 
-        if (start >= todos.size()) {
-            return List.of();
-        }
+        List<Map<String, Object>> items = pageResult.getContent()
+                .stream()
+                .map(livro -> aplicarFieldMask(livro, fields))
+                .toList();
 
-        int end = Math.min(start + size, todos.size());
-        return todos.subList(start, end);
+        Map<String, Object> response = new HashMap<>();
+        response.put("page", pageResult.getNumber());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("items", items);
 
+        return response;
     }
 
     @GetMapping("/{id}")
@@ -70,4 +83,29 @@ public class LivroController {
         livroRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    private Map<String, Object> aplicarFieldMask(Livro livro, Set<String> fields) {
+
+        Map<String, Object> map = new HashMap<>();
+
+        if (fields == null || fields.isEmpty()) {
+            map.put("id", livro.getId());
+            map.put("titulo", livro.getTitulo());
+            map.put("autor", livro.getAutor());
+            return map;
+        }
+
+        if (fields.contains("id")) {
+            map.put("id", livro.getId());
+        }
+        if (fields.contains("titulo")) {
+            map.put("titulo", livro.getTitulo());
+        }
+        if (fields.contains("autor")) {
+            map.put("autor", livro.getAutor());
+        }
+
+        return map;
+    }
+
 }
