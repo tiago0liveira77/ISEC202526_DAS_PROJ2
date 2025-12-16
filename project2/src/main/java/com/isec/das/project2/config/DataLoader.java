@@ -1,16 +1,13 @@
 package com.isec.das.project2.config;
 
-import com.isec.das.project2.model.Biblioteca;
-import com.isec.das.project2.model.CopiaLivro;
-import com.isec.das.project2.model.Livro;
-import com.isec.das.project2.model.Pessoa;
-import com.isec.das.project2.repository.BibliotecaRepository;
-import com.isec.das.project2.repository.CopiaLivroRepository;
-import com.isec.das.project2.repository.LivroRepository;
-import com.isec.das.project2.repository.PessoaRepository;
+import com.isec.das.project2.model.*;
+import com.isec.das.project2.repository.*;
+import com.isec.das.project2.util.EstadoRegisto;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.LocalDate;
 
 @Configuration
 public class DataLoader {
@@ -20,7 +17,8 @@ public class DataLoader {
             LivroRepository livroRepository,
             PessoaRepository pessoaRepository,
             BibliotecaRepository bibliotecaRepository,
-            CopiaLivroRepository copiaLivroRepository) {
+            CopiaLivroRepository copiaLivroRepository,
+            RegistoRepository registoRepository) {
 
         return args -> {
             System.out.println("A carregar Dados iniciais!");
@@ -36,6 +34,9 @@ public class DataLoader {
             Livro l1 = livroRepository.save(Livro.builder().titulo("O Senhor dos Anéis").autor("J.R.R. Tolkien").build());
             Livro l2 = livroRepository.save(Livro.builder().titulo("1984").autor("George Orwell").build());
             Livro l3 = livroRepository.save(Livro.builder().titulo("Dom Quixote").autor("Miguel de Cervantes").build());
+
+            // Registos
+            Registo r1 = registoRepository.save(Registo.builder().pessoa(p1).biblioteca(b1).dataRegisto(LocalDate.now()).estado(EstadoRegisto.ATIVO).build());
 
             // Cópias
             copiaLivroRepository.save(CopiaLivro.builder().livro(l1).biblioteca(b1).build());

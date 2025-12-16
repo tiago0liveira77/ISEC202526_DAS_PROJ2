@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/livros")
@@ -25,10 +22,10 @@ public class LivroController {
     }
 
     @GetMapping
-    public Map<String, Object> listar(
+    public ResponseEntity<?> listar(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Set<String> fields) {
+            @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
 
         size = Math.min(size, 10);
 
@@ -46,13 +43,17 @@ public class LivroController {
         response.put("hasNext", pageResult.hasNext());
         response.put("items", items);
 
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Livro> obter(@PathVariable Long id) {
+    public ResponseEntity<?> obter(@PathVariable Long id,
+                                       @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
         return livroRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(livro -> {
+                    Map<String, Object> response = aplicarFieldMask(livro, fields);
+                    return ResponseEntity.ok(response);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -88,7 +89,7 @@ public class LivroController {
 
         Map<String, Object> map = new HashMap<>();
 
-        if (fields == null || fields.isEmpty()) {
+        if (fields.contains("*")) {
             map.put("id", livro.getId());
             map.put("titulo", livro.getTitulo());
             map.put("autor", livro.getAutor());
