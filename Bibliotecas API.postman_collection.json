@@ -1,0 +1,912 @@
+{
+	"info": {
+		"_postman_id": "230d2983-1873-406c-a05e-0d7fd84da038",
+		"name": "Bibliotecas API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31353839"
+	},
+	"item": [
+		{
+			"name": "Pessoas",
+			"item": [
+				{
+					"name": "Create Person",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"nome\": \"João Silva2\", \"email\": \"joao2.silva@example.com\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/pessoas",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pessoas"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST http://localhost:8080/pessoas -H \"Content-Type: application/json\" -d '{\"nome\": \"João Silva\", \"email\": \"joao.silva@example.com\"}'"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All People",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pessoas?page=0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pessoas"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET http://localhost:8080/pessoas"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Person",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pessoas/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pessoas",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET http://localhost:8080/pessoas/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Person",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"email\": \"joao.novo@example.com\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/pessoas/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pessoas",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PATCH http://localhost:8080/pessoas/1 -H \"Content-Type: application/json\" -d '{\"email\": \"joao.novo@example.com\"}'"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Person",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pessoas/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pessoas",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE http://localhost:8080/pessoas/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Bibliotecas",
+			"item": [
+				{
+					"name": "Create Library",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nome\": \"Biblioteca Rodrigo3\",\n  \"localizacao\": \"Lisboa\"\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/bibliotecas",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"bibliotecas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Libraries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/bibliotecas?page=0",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"bibliotecas"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Library",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/bibliotecas/2?fields=localizacao",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"bibliotecas",
+								"2"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "localizacao"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Library",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/bibliotecas/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"bibliotecas",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Library",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"localizacao\": \"Lisboa\"\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/bibliotecas/1",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"bibliotecas",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registos",
+			"item": [
+				{
+					"name": "Create Registo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/registos?pessoaId=3&bibliotecaId=3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registos"
+							],
+							"query": [
+								{
+									"key": "pessoaId",
+									"value": "3"
+								},
+								{
+									"key": "bibliotecaId",
+									"value": "3"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:8080/registos?pessoaId=1&bibliotecaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Registos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/registos?page=0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registos"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/registos\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Registos by Pessoa",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/registos?pessoaId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registos"
+							],
+							"query": [
+								{
+									"key": "pessoaId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/registos?pessoaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Registos by Biblioteca",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/registos?bibliotecaId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registos"
+							],
+							"query": [
+								{
+									"key": "bibliotecaId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/registos?bibliotecaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Registo",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/registos/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registos",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PATCH \"http://localhost:8080/registos/1\""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Livros",
+			"item": [
+				{
+					"name": "Create Livro",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"titulo\": \"O Senhor dos Anéis3\", \"autor\": \"J.R.R. Tolkien3\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/livros",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST http://localhost:8080/livros -H \"Content-Type: application/json\" -d '{\"titulo\": \"O Senhor dos Anéis\", \"autor\": \"J.R.R. Tolkien\"}'"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Livros",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/livros",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET http://localhost:8080/livros"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Livro",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/livros/1?fields=autor&fields=tITulo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros",
+								"1"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "autor"
+								},
+								{
+									"key": "fields",
+									"value": "tITulo"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET http://localhost:8080/livros/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Livro",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"titulo\": \"O Hobbit\", \"autor\": \"J.R.R. Tolkien\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/livros/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PATCH http://localhost:8080/livros/1 -H \"Content-Type: application/json\" -d '{\"titulo\": \"O Hobbit\", \"autor\": \"J.R.R. Tolkien\"}'"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Livro",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/livros/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X DELETE http://localhost:8080/livros/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Full Text",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/livros/1/fulltext",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros",
+								"1",
+								"fulltext"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Text",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "Era uma vez...",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/livros/1/fulltext",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"livros",
+								"1",
+								"fulltext"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Copias",
+			"item": [
+				{
+					"name": "Create Copia",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/copias?livroId=4&bibliotecaId=3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"copias"
+							],
+							"query": [
+								{
+									"key": "livroId",
+									"value": "4"
+								},
+								{
+									"key": "bibliotecaId",
+									"value": "3"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:8080/copias?livroId=1&bibliotecaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Copias",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/copias?page=0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"copias"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET http://localhost:8080/copias"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Copias by Biblioteca",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/copias?bibliotecaId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"copias"
+							],
+							"query": [
+								{
+									"key": "bibliotecaId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/copias?bibliotecaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Move Copia",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/copias/1:move?novaBibliotecaId=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"copias",
+								"1:move"
+							],
+							"query": [
+								{
+									"key": "novaBibliotecaId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Emprestimos",
+			"item": [
+				{
+					"name": "Create Emprestimo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/emprestimos?pessoaId=3&copiaId=5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"emprestimos"
+							],
+							"query": [
+								{
+									"key": "pessoaId",
+									"value": "3"
+								},
+								{
+									"key": "copiaId",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X POST \"http://localhost:8080/emprestimos?pessoaId=1&copiaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Emprestimos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/emprestimos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"emprestimos"
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/emprestimos\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Emprestimos by Pessoa",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/emprestimos?pessoaId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"emprestimos"
+							],
+							"query": [
+								{
+									"key": "pessoaId",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/emprestimos?pessoaId=1\""
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Emprestimos by Pessoa",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/emprestimos?pessoaId=1&apenasAtivos=true",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"emprestimos"
+							],
+							"query": [
+								{
+									"key": "pessoaId",
+									"value": "1"
+								},
+								{
+									"key": "apenasAtivos",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Generated from cURL: curl -X GET \"http://localhost:8080/emprestimos?pessoaId=1&apenasAtivos=true\""
+					},
+					"response": []
+				},
+				{
+					"name": "Devolver Emprestimo",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/emprestimos/1:devolver",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"emprestimos",
+								"1:devolver"
+							]
+						},
+						"description": "Generated from cURL: curl -X PATCH \"http://localhost:8080/emprestimos/1/devolver\""
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Operations",
+			"item": [
+				{
+					"name": "Get Operations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/operations/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"operations",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search Full Text",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/searchFulltext?word=dragão",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"searchFulltext"
+							],
+							"query": [
+								{
+									"key": "word",
+									"value": "dragão"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
