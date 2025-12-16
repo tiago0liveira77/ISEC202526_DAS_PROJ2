@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
+
 @RestController
 @RequestMapping("/bibliotecas")
 public class BibliotecaController {
@@ -92,29 +94,5 @@ public class BibliotecaController {
         }
         bibliotecaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    private Map<String, Object> aplicarFieldMask(Biblioteca biblioteca, Set<String> fields) {
-
-        Map<String, Object> map = new HashMap<>();
-
-        if (fields.contains("*")) {
-            map.put("id", biblioteca.getId());
-            map.put("nome", biblioteca.getNome());
-            map.put("localizacao", biblioteca.getLocalizacao());
-            return map;
-        }
-
-        if (fields.contains("id")) {
-            map.put("id", biblioteca.getId());
-        }
-        if (fields.contains("nome")) {
-            map.put("nome", biblioteca.getNome());
-        }
-        if (fields.contains("localizacao")) {
-            map.put("localizacao", biblioteca.getLocalizacao());
-        }
-
-        return map;
     }
 }

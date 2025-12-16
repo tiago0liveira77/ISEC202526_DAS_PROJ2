@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.*;
 
+import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
+
 @RestController
 @RequestMapping("/livros")
 public class LivroController {
@@ -85,28 +87,6 @@ public class LivroController {
         return ResponseEntity.noContent().build();
     }
 
-    private Map<String, Object> aplicarFieldMask(Livro livro, Set<String> fields) {
 
-        Map<String, Object> map = new HashMap<>();
-
-        if (fields.contains("*")) {
-            map.put("id", livro.getId());
-            map.put("titulo", livro.getTitulo());
-            map.put("autor", livro.getAutor());
-            return map;
-        }
-
-        if (fields.contains("id")) {
-            map.put("id", livro.getId());
-        }
-        if (fields.contains("titulo")) {
-            map.put("titulo", livro.getTitulo());
-        }
-        if (fields.contains("autor")) {
-            map.put("autor", livro.getAutor());
-        }
-
-        return map;
-    }
 
 }

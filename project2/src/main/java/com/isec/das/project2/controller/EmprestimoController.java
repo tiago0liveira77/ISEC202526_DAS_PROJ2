@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
 
 @RestController
 @RequestMapping("/emprestimos")
@@ -96,6 +99,17 @@ public class EmprestimoController {
         return lista.subList(start, end);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obter(@PathVariable Long id,
+                                   @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
+        return emprestimoRepository.findById(id)
+                .map(emprestimo -> {
+                    Map<String, Object> response = aplicarFieldMask(emprestimo, fields);
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     @PostMapping("/{id}:devolver")
     public ResponseEntity<?> devolver(@PathVariable Long id) {
@@ -108,4 +122,5 @@ public class EmprestimoController {
             return ResponseEntity.ok(emprestimoRepository.save(emp));
         }).orElse(ResponseEntity.notFound().build());
     }
+
 }

@@ -2,6 +2,7 @@ package com.isec.das.project2.config;
 
 import com.isec.das.project2.model.*;
 import com.isec.das.project2.repository.*;
+import com.isec.das.project2.util.EstadoEmprestimo;
 import com.isec.das.project2.util.EstadoRegisto;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +19,8 @@ public class DataLoader {
             PessoaRepository pessoaRepository,
             BibliotecaRepository bibliotecaRepository,
             CopiaLivroRepository copiaLivroRepository,
-            RegistoRepository registoRepository) {
+            RegistoRepository registoRepository,
+            EmprestimoRepository emprestimoRepository) {
 
         return args -> {
             System.out.println("A carregar Dados iniciais!");
@@ -39,10 +41,14 @@ public class DataLoader {
             Registo r1 = registoRepository.save(Registo.builder().pessoa(p1).biblioteca(b1).dataRegisto(LocalDate.now()).estado(EstadoRegisto.ATIVO).build());
 
             // Cópias
-            copiaLivroRepository.save(CopiaLivro.builder().livro(l1).biblioteca(b1).build());
+            CopiaLivro c1 = copiaLivroRepository.save(CopiaLivro.builder().livro(l1).biblioteca(b1).build());
             copiaLivroRepository.save(CopiaLivro.builder().livro(l1).biblioteca(b2).build());
             copiaLivroRepository.save(CopiaLivro.builder().livro(l2).biblioteca(b1).build());
             copiaLivroRepository.save(CopiaLivro.builder().livro(l3).biblioteca(b2).build());
+
+            //Emprestimos
+            Emprestimo e1 = emprestimoRepository.save(Emprestimo.builder().pessoa(p1).copiaLivro(c1).estado(EstadoEmprestimo.ATIVO).dataEmprestimo(LocalDate.now()).build());
+
 
             System.out.println("Dados iniciais carregados com sucesso!");
         };
