@@ -161,8 +161,8 @@ public class FieldMasks {
             }
 
             if(rootToSubFields.containsKey("biblioteca") && copiaLivro.getBiblioteca() != null){
-                Set<String> copiaLivroFields = rootToSubFields.get("biblioteca");
-                Map<String, Object> livroMap = aplicarFieldMask(copiaLivro.getBiblioteca(), copiaLivroFields);
+                Set<String> bibliotecaFields = rootToSubFields.get("biblioteca");
+                Map<String, Object> livroMap = aplicarFieldMask(copiaLivro.getBiblioteca(), bibliotecaFields);
 
                 map.put("biblioteca", livroMap);
             }
