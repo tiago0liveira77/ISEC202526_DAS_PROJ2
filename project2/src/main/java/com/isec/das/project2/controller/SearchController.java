@@ -34,7 +34,8 @@ public class SearchController {
     @PostMapping
     public ResponseEntity<Operation> iniciarPesquisa(@RequestParam String word) {
 
-        Operation op = operationRepository.save(Operation.builder()
+        Operation op = operationRepository.save(
+                Operation.builder()
                 .done(false)
                 .build());
 

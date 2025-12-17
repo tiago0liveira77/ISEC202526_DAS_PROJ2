@@ -140,13 +140,13 @@ public class FieldMasks {
             Map<String, Set<String>> rootToSubFields = new LinkedHashMap<>();
 
             // Processa cada field mask complexo
-            for(String f : nestedFields){
-                int dotIndex = f.indexOf(".");
+            for(String field : nestedFields){
+                int dotIndex = field.indexOf(".");
                 if(dotIndex > 0){
                     // Nome do objeto raiz (ex: "livro" ou "biblioteca")
-                    String root = f.substring(0, dotIndex);
+                    String root = field.substring(0, dotIndex);
                     // Nome do atributo interno do objeto (ex: "titulo", "localizacao")
-                    String sub = f.substring(dotIndex + 1);
+                    String sub = field.substring(dotIndex + 1);
 
                     // Agrupa os subcampos por objeto raiz
                     rootToSubFields.computeIfAbsent(root, k -> new LinkedHashSet<>()).add(sub);
@@ -239,13 +239,13 @@ public class FieldMasks {
             Map<String, Set<String>> rootToSubFields = new LinkedHashMap<>();
 
             // Processa cada field mask complexo
-            for(String f : nestedFields){
-                int dotIndex = f.indexOf(".");
+            for(String field : nestedFields){
+                int dotIndex = field.indexOf(".");
                 if(dotIndex > 0){
                     // Nome do objeto raiz (ex: "copiaLivro" ou "pessoa")
-                    String root = f.substring(0, dotIndex);
+                    String root = field.substring(0, dotIndex);
                     // Nome do atributo interno do objeto (ex: "titulo", "nome")
-                    String sub = f.substring(dotIndex + 1);
+                    String sub = field.substring(dotIndex + 1);
 
                     // Agrupa os subcampos por objeto raiz
                     rootToSubFields.computeIfAbsent(root, k -> new LinkedHashSet<>()).add(sub);

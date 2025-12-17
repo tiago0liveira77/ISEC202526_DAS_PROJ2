@@ -2,12 +2,17 @@ package com.isec.das.project2.controller;
 
 import com.isec.das.project2.model.*;
 import com.isec.das.project2.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.isec.das.project2.util.EstadoEmprestimo;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/copias")
@@ -34,6 +39,7 @@ public class CopiaLivroController {
             @RequestParam Long bibliotecaId) {
 
         Livro livro = livroRepository.findById(livroId).orElse(null);
+
         Biblioteca biblioteca = bibliotecaRepository.findById(bibliotecaId).orElse(null);
 
         if (livro == null || biblioteca == null) {
@@ -42,37 +48,40 @@ public class CopiaLivroController {
 
         CopiaLivro copia = copiaRepository.save(
                 CopiaLivro.builder()
-                        .livro(livro)
-                        .biblioteca(biblioteca)
-                        .build());
+                .livro(livro)
+                .biblioteca(biblioteca)
+                .build());
+
         URI location = URI.create("/copias/" + copia.getId());
         return ResponseEntity.created(location).body(copia);
     }
 
     @GetMapping
-    public List<CopiaLivro> listar(
+    public ResponseEntity<?> listar(
             @RequestParam(required = false) Long bibliotecaId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         size = Math.min(size, 10);
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<CopiaLivro> lista;
+        Page<CopiaLivro> pageResult;
 
         if (bibliotecaId != null) {
-            lista = copiaRepository.findByBibliotecaId(bibliotecaId);
+            pageResult = copiaRepository.findByBibliotecaId(bibliotecaId, pageable);
         } else {
-            lista = copiaRepository.findAll();
+            pageResult = copiaRepository.findAll(pageable);
         }
 
-        int start = page * size;
-        if (start >= lista.size()) {
-            return List.of();
-        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("page", pageResult.getNumber());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("items", pageResult.getContent());
 
-        int end = Math.min(start + size, lista.size());
-        return lista.subList(start, end);
+        return ResponseEntity.ok(response);
     }
+
 
     @PostMapping("/{id}:move")
     public ResponseEntity<CopiaLivro> moverCopia(
@@ -89,10 +98,14 @@ public class CopiaLivroController {
             return ResponseEntity.badRequest().build();
         }
 
-        boolean emprestada = emprestimoRepository
-                .findByCopiaLivroId(id)
-                .stream()
-                .anyMatch(e -> e.getEstado() == EstadoEmprestimo.ATIVO);
+        boolean emprestada = false;
+
+        for (Emprestimo emprestimo : emprestimoRepository.findByCopiaLivroId(id)) {
+            if (emprestimo.getEstado() == EstadoEmprestimo.ATIVO) {
+                emprestada = true;
+                break;
+            }
+        }
 
         if (emprestada) {
             // Não permitido mover uma cópia emprestada

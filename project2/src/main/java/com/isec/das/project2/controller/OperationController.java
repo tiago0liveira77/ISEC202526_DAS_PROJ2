@@ -5,6 +5,8 @@ import com.isec.das.project2.repository.OperationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/operations")
 public class OperationController {
@@ -17,8 +19,14 @@ public class OperationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Operation> obter(@PathVariable Long id) {
-        return operationRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+
+        Operation operation = operationRepository.findById(id).orElse(null);
+
+        if (operation == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(operation);
+
     }
 }

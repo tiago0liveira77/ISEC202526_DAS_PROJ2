@@ -10,10 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
 
@@ -29,19 +26,27 @@ public class BibliotecaController {
 
     @GetMapping
     public ResponseEntity<?> listar(
+            @RequestParam(required = false) String location,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) Set<String> fields) {
 
         size = Math.min(size, 10);
-
         Pageable pageable = PageRequest.of(page, size);
-        Page<Biblioteca> pageResult = bibliotecaRepository.findAll(pageable);
 
-        List<Map<String, Object>> items = pageResult.getContent()
-                .stream()
-                .map(b -> aplicarFieldMask(b, fields))
-                .toList();
+        Page<Biblioteca> pageResult;
+
+        if (location != null) {
+            pageResult = bibliotecaRepository.findByLocationContainingIgnoreCase(location, pageable);
+        } else {
+            pageResult = bibliotecaRepository.findAll(pageable);
+        }
+
+        List<Map<String, Object>> items = new ArrayList<>();
+
+        for (var b : pageResult.getContent()) {
+            items.add(aplicarFieldMask(b, fields));
+        }
 
         Map<String, Object> response = new HashMap<>();
         response.put("page", pageResult.getNumber());
@@ -56,12 +61,16 @@ public class BibliotecaController {
     @GetMapping("/{id}")
     public ResponseEntity<?> obter(@PathVariable Long id,
                                             @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
-        return bibliotecaRepository.findById(id)
-                .map(biblioteca -> {
-                    Map<String, Object> response = aplicarFieldMask(biblioteca, fields);
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.notFound().build());
+
+        Optional<Biblioteca> optionalBiblioteca = bibliotecaRepository.findById(id);
+
+        if (optionalBiblioteca.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> response = aplicarFieldMask(optionalBiblioteca.get(), fields);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
@@ -76,22 +85,34 @@ public class BibliotecaController {
             @PathVariable Long id,
             @RequestBody Biblioteca dados) {
 
-        return bibliotecaRepository.findById(id).map(biblioteca -> {
-            if (dados.getNome() != null) {
-                biblioteca.setNome(dados.getNome());
-            }
-            if (dados.getLocalizacao() != null) {
-                biblioteca.setLocalizacao(dados.getLocalizacao());
-            }
-            return ResponseEntity.ok(bibliotecaRepository.save(biblioteca));
-        }).orElse(ResponseEntity.notFound().build());
+        Optional<Biblioteca> optionalBiblioteca = bibliotecaRepository.findById(id);
+
+        if (optionalBiblioteca.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Biblioteca biblioteca = optionalBiblioteca.get();
+
+        if (dados.getNome() != null) {
+            biblioteca.setNome(dados.getNome());
+        }
+
+        if (dados.getLocalizacao() != null) {
+            biblioteca.setLocalizacao(dados.getLocalizacao());
+        }
+
+        Biblioteca bibliotecaAtualizada = bibliotecaRepository.save(biblioteca);
+
+        return ResponseEntity.ok(bibliotecaAtualizada);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Long id) {
+
         if (!bibliotecaRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
+
         bibliotecaRepository.deleteById(id);
         return ResponseEntity.noContent().build();
     }

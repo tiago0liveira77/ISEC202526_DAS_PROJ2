@@ -2,11 +2,16 @@ package com.isec.das.project2.controller;
 
 import com.isec.das.project2.model.Pessoa;
 import com.isec.das.project2.repository.PessoaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/pessoas")
@@ -19,27 +24,43 @@ public class PessoaController {
     }
 
     @GetMapping
-    public List<Pessoa> listar(
+    public ResponseEntity<?> listar(
+            @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         size = Math.min(size, 10);
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<Pessoa> lista = pessoaRepository.findAll();
-        int start = page * size;
+        Page<Pessoa> pageResult;
 
-        if (start >= lista.size()) return List.of();
+        if (email != null) {
+            pageResult = pessoaRepository.findByEmailContainingIgnoreCase(email, pageable);
+        } else {
+            pageResult = pessoaRepository.findAll(pageable);
+        }
 
-        int end = Math.min(start + size, lista.size());
-        return lista.subList(start, end);
+        Map<String, Object> response = new HashMap<>();
+        response.put("page", pageResult.getNumber());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("items", pageResult.getContent());
+
+        return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping("/{id}")
     public ResponseEntity<Pessoa> obter(@PathVariable Long id) {
-        return pessoaRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Pessoa pessoa = pessoaRepository.findById(id).orElse(null);
+
+        if (pessoa == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(pessoa);
+
     }
 
     @PostMapping
@@ -54,15 +75,21 @@ public class PessoaController {
             @PathVariable Long id,
             @RequestBody Pessoa dados) {
 
-        return pessoaRepository.findById(id).map(pessoa -> {
-            if (dados.getNome() != null) {
-                pessoa.setNome(dados.getNome());
-            }
-            if (dados.getEmail() != null) {
-                pessoa.setEmail(dados.getEmail());
-            }
-            return ResponseEntity.ok(pessoaRepository.save(pessoa));
-        }).orElse(ResponseEntity.notFound().build());
+        Pessoa pessoa = pessoaRepository.findById(id).orElse(null);
+
+        if (pessoa == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (dados.getNome() != null) {
+            pessoa.setNome(dados.getNome());
+        }
+        if (dados.getEmail() != null) {
+            pessoa.setEmail(dados.getEmail());
+        }
+
+        return ResponseEntity.ok(pessoaRepository.save(pessoa));
+
     }
 
     @DeleteMapping("/{id}")

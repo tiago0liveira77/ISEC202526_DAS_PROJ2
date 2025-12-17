@@ -3,6 +3,10 @@ package com.isec.das.project2.controller;
 import com.isec.das.project2.model.*;
 import com.isec.das.project2.repository.*;
 import com.isec.das.project2.util.EstadoEmprestimo;
+import com.isec.das.project2.util.EstadoRegisto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +39,37 @@ public class EmprestimoController {
         this.registoRepository = registoRepository;
     }
 
+    @GetMapping
+    public ResponseEntity<?> listar(
+            @RequestParam(required = false) Long pessoaId,
+            @RequestParam(required = false) Boolean ativos,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        size = Math.min(size, 10);
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Emprestimo> pageResult;
+
+        if (pessoaId != null && Boolean.TRUE.equals(ativos)) {
+            pageResult = emprestimoRepository.findByPessoaIdAndEstado(pessoaId, EstadoEmprestimo.ATIVO, pageable);
+        } else if (pessoaId != null) {
+            pageResult = emprestimoRepository.findByPessoaId(pessoaId, pageable);
+        } else {
+            pageResult = emprestimoRepository.findAll(pageable);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("page", pageResult.getNumber());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("items", pageResult.getContent());
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
     @PostMapping
     public ResponseEntity<Emprestimo> criar(
             @RequestParam Long pessoaId,
@@ -47,80 +82,71 @@ public class EmprestimoController {
             return ResponseEntity.badRequest().build();
         }
 
-        // verificar se a pessoa está registada na biblioteca desta cópia
-        boolean registado = registoRepository
-                .findByPessoaId(pessoaId).stream()
-                .anyMatch(r ->
-                        r.getBiblioteca().getId().equals(copia.getBiblioteca().getId())
-                                && r.getEstado().name().equals("ATIVO")
-                );
+        boolean registado = false;
+
+        for (Registo registo : registoRepository.findByPessoaId(pessoaId)) {
+            if (registo.getBiblioteca().getId().equals(copia.getBiblioteca().getId())
+                    && registo.getEstado() == EstadoRegisto.ATIVO) {
+                registado = true;
+                break;
+            }
+        }
 
         if (!registado) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         // criar empréstimo
-        Emprestimo e = emprestimoRepository.save(Emprestimo.builder()
+        Emprestimo emprestimo = emprestimoRepository.save(Emprestimo.builder()
                 .pessoa(pessoa)
                 .copiaLivro(copia)
                 .estado(EstadoEmprestimo.ATIVO)
                 .dataEmprestimo(LocalDate.now())
                 .build());
-        URI location = URI.create("/emprestimos/" + e.getId());
-        return ResponseEntity.created(location).body(e);
+
+        URI location = URI.create("/emprestimos/" + emprestimo.getId());
+        return ResponseEntity.created(location).body(emprestimo);
     }
 
-    @GetMapping
-    public List<Emprestimo> listar(
-            @RequestParam(required = false) Long pessoaId,
-            @RequestParam(required = false) Boolean ativos,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        size = Math.min(size, 10);
-
-        List<Emprestimo> lista;
-
-        if (pessoaId != null && Boolean.TRUE.equals(ativos)) {
-            lista = emprestimoRepository
-                    .findByPessoaIdAndEstado(pessoaId, EstadoEmprestimo.ATIVO);
-        } else if (pessoaId != null) {
-            lista = emprestimoRepository.findByPessoaId(pessoaId);
-        } else {
-            lista = emprestimoRepository.findAll();
-        }
-
-        int start = page * size;
-        if (start >= lista.size()) {
-            return List.of();
-        }
-
-        int end = Math.min(start + size, lista.size());
-        return lista.subList(start, end);
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obter(@PathVariable Long id,
                                    @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
-        return emprestimoRepository.findById(id)
-                .map(emprestimo -> {
-                    Map<String, Object> response = aplicarFieldMask(emprestimo, fields);
-                    return ResponseEntity.ok(response);
-                })
-                .orElse(ResponseEntity.notFound().build());
+
+        Optional<Emprestimo> optionalEmprestimo = emprestimoRepository.findById(id);
+
+        if (optionalEmprestimo.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> response = aplicarFieldMask(optionalEmprestimo.get(), fields);
+
+        return ResponseEntity.ok(response);
     }
 
 
     @PostMapping("/{id}:devolver")
     public ResponseEntity<?> devolver(@PathVariable Long id) {
-        return emprestimoRepository.findById(id).map(emp -> {
-            if (emp.getEstado() != EstadoEmprestimo.ATIVO) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).build();
-            }
-            emp.setEstado(EstadoEmprestimo.DEVOLVIDO);
-            emp.setDataDevolucao(LocalDate.now());
-            return ResponseEntity.ok(emprestimoRepository.save(emp));
-        }).orElse(ResponseEntity.notFound().build());
+
+        Optional<Emprestimo> optionalEmprestimo = emprestimoRepository.findById(id);
+
+        if (optionalEmprestimo.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Emprestimo emp = optionalEmprestimo.get();
+
+        if (emp.getEstado() != EstadoEmprestimo.ATIVO) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        emp.setEstado(EstadoEmprestimo.DEVOLVIDO);
+        emp.setDataDevolucao(LocalDate.now());
+
+        Emprestimo emprestimoAtualizado = emprestimoRepository.save(emp);
+
+        return ResponseEntity.ok(emprestimoAtualizado);
+
     }
 
 }

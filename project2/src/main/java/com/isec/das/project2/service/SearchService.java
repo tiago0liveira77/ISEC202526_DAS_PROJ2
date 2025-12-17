@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.isec.das.project2.model.Livro;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,14 +27,24 @@ public class SearchService {
         try {
             Thread.sleep(10000);
 
-            List<String> encontrados = livroRepository.findAll().stream()
-                    .filter(l -> {
-                        FullText ft = fullTextRepository.findById(l.getId()).orElse(null);
-                        if (ft == null || ft.getTexto() == null) return false;
-                        return ft.getTexto().toLowerCase().contains(word.toLowerCase());
-                    })
-                    .map(Livro::getTitulo)
-                    .collect(Collectors.toList());
+            String palavra = word.toLowerCase();
+            List<String> encontrados = new ArrayList<>();
+
+            for (Livro livro : livroRepository.findAll()) {
+                FullText fulltext = fullTextRepository.findById(livro.getId()).orElse(null);
+
+                if (fulltext == null || fulltext.getTexto() == null) {
+                    continue;
+                }
+
+                if (fulltext.getTexto().toLowerCase().contains(palavra)) {
+                    encontrados.add(livro.getTitulo());
+                }
+            }
+
+
+
+
 
             Operation op = operationRepository.findById(operationId).orElseThrow();
             op.setResult(mapper.writeValueAsString(encontrados));

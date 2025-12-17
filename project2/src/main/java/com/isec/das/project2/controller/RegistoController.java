@@ -3,12 +3,17 @@ package com.isec.das.project2.controller;
 import com.isec.das.project2.model.*;
 import com.isec.das.project2.repository.*;
 import com.isec.das.project2.util.EstadoRegisto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/registos")
@@ -26,6 +31,36 @@ public class RegistoController {
         this.pessoaRepository = pessoaRepository;
         this.bibliotecaRepository = bibliotecaRepository;
     }
+
+    @GetMapping
+    public ResponseEntity<?> listar(
+            @RequestParam(required = false) Long pessoaId,
+            @RequestParam(required = false) Long bibliotecaId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        size = Math.min(size, 10);
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Registo> pageResult;
+
+        if (pessoaId != null) {
+            pageResult = registoRepository.findByPessoaId(pessoaId, pageable);
+        } else if (bibliotecaId != null) {
+            pageResult = registoRepository.findByBibliotecaId(bibliotecaId, pageable);
+        } else {
+            pageResult = registoRepository.findAll(pageable);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("page", pageResult.getNumber());
+        response.put("size", pageResult.getSize());
+        response.put("hasNext", pageResult.hasNext());
+        response.put("items", pageResult.getContent());
+
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping
     public ResponseEntity<Registo> criar(
@@ -50,25 +85,19 @@ public class RegistoController {
         return ResponseEntity.created(location).body(novo);
     }
 
-    @GetMapping
-    public List<Registo> listar(
-            @RequestParam(required = false) Long pessoaId,
-            @RequestParam(required = false) Long bibliotecaId) {
 
-        if (pessoaId != null) {
-            return registoRepository.findByPessoaId(pessoaId);
-        }
-        if (bibliotecaId != null) {
-            return registoRepository.findByBibliotecaId(bibliotecaId);
-        }
-        return registoRepository.findAll();
-    }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Registo> cancelar(@PathVariable Long id) {
-        return registoRepository.findById(id).map(registo -> {
-            registo.setEstado(EstadoRegisto.CANCELADO);
-            return ResponseEntity.ok(registoRepository.save(registo));
-        }).orElse(ResponseEntity.notFound().build());
+
+        Registo registo = registoRepository.findById(id).orElse(null);
+
+        if (registo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        registo.setEstado(EstadoRegisto.CANCELADO);
+        return ResponseEntity.ok(registoRepository.save(registo));
+
     }
 }
