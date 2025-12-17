@@ -39,6 +39,7 @@ public class DataLoader {
 
             // Registos
             Registo r1 = registoRepository.save(Registo.builder().pessoa(p1).biblioteca(b1).dataRegisto(LocalDate.now()).estado(EstadoRegisto.ATIVO).build());
+            Registo r2 = registoRepository.save(Registo.builder().pessoa(p2).biblioteca(b1).dataRegisto(LocalDate.now()).estado(EstadoRegisto.ATIVO).build());
 
             // Cópias
             CopiaLivro c1 = copiaLivroRepository.save(CopiaLivro.builder().livro(l1).biblioteca(b1).build());

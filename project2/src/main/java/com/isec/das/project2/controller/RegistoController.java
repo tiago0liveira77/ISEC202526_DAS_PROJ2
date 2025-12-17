@@ -6,14 +6,15 @@ import com.isec.das.project2.util.EstadoRegisto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
 
 @RestController
 @RequestMapping("/registos")
@@ -43,8 +44,10 @@ public class RegistoController {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Registo> pageResult;
-
-        if (pessoaId != null) {
+        if (pessoaId != null && bibliotecaId != null) {
+            pageResult = registoRepository.findByPessoaIdAndBibliotecaId(pessoaId, bibliotecaId, pageable);
+        }
+        else if (pessoaId != null) {
             pageResult = registoRepository.findByPessoaId(pessoaId, pageable);
         } else if (bibliotecaId != null) {
             pageResult = registoRepository.findByBibliotecaId(bibliotecaId, pageable);
@@ -62,7 +65,23 @@ public class RegistoController {
     }
 
 
-    @PostMapping
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obter(@PathVariable Long id,
+                                   @RequestParam(value = "fields", defaultValue = "*") Set<String> fields){
+
+        Optional<Registo> optRegisto = registoRepository.findById(id);
+
+        if(optRegisto.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> response = aplicarFieldMask(optRegisto.get(), fields);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+                                   @PostMapping
     public ResponseEntity<Registo> criar(
             @RequestParam Long pessoaId,
             @RequestParam Long bibliotecaId) {
@@ -74,20 +93,26 @@ public class RegistoController {
             return ResponseEntity.badRequest().build();
         }
 
-        Registo novo = registoRepository.save(Registo.builder()
-                .pessoa(pessoa)
-                .biblioteca(biblioteca)
-                .estado(EstadoRegisto.ATIVO)
-                .dataRegisto(LocalDate.now())
-                .build());
+        Registo registo = registoRepository.findByPessoaIdAndBibliotecaId(pessoaId, bibliotecaId).orElse(null);
 
-        URI location = URI.create("/registos/" + novo.getId());
-        return ResponseEntity.created(location).body(novo);
+        if(registo != null){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        } else {
+            Registo novo = registoRepository.save(Registo.builder()
+                    .pessoa(pessoa)
+                    .biblioteca(biblioteca)
+                    .estado(EstadoRegisto.ATIVO)
+                    .dataRegisto(LocalDate.now())
+                    .build());
+
+            URI location = URI.create("/registos/" + novo.getId());
+            return ResponseEntity.created(location).body(novo);
+        }
     }
 
 
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id}:cancelar")
     public ResponseEntity<Registo> cancelar(@PathVariable Long id) {
 
         Registo registo = registoRepository.findById(id).orElse(null);
@@ -96,7 +121,29 @@ public class RegistoController {
             return ResponseEntity.notFound().build();
         }
 
+        if (!registo.getEstado().equals(EstadoRegisto.ATIVO)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
         registo.setEstado(EstadoRegisto.CANCELADO);
+        return ResponseEntity.ok(registoRepository.save(registo));
+
+    }
+
+    @PatchMapping("/{id}:ativar")
+    public ResponseEntity<Registo> ativar(@PathVariable Long id) {
+
+        Registo registo = registoRepository.findById(id).orElse(null);
+
+        if (registo == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (!registo.getEstado().equals(EstadoRegisto.CANCELADO)){
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        registo.setEstado(EstadoRegisto.ATIVO);
         return ResponseEntity.ok(registoRepository.save(registo));
 
     }

@@ -5,8 +5,6 @@ import com.isec.das.project2.repository.OperationRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/operations")
 public class OperationController {

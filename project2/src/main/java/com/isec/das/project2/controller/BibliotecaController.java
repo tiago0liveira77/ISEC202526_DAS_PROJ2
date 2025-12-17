@@ -1,7 +1,6 @@
 package com.isec.das.project2.controller;
 
 import com.isec.das.project2.model.Biblioteca;
-import com.isec.das.project2.model.Livro;
 import com.isec.das.project2.repository.BibliotecaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,18 +25,18 @@ public class BibliotecaController {
 
     @GetMapping
     public ResponseEntity<?> listar(
-            @RequestParam(required = false) String location,
+            @RequestParam(required = false) String localizacao,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Set<String> fields) {
+            @RequestParam(value = "fields", defaultValue = "*") Set<String> fields) {
 
         size = Math.min(size, 10);
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Biblioteca> pageResult;
 
-        if (location != null) {
-            pageResult = bibliotecaRepository.findByLocationContainingIgnoreCase(location, pageable);
+        if (localizacao != null) {
+            pageResult = bibliotecaRepository.findByLocalizacaoContainingIgnoreCase(localizacao, pageable);
         } else {
             pageResult = bibliotecaRepository.findAll(pageable);
         }

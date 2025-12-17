@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BibliotecaRepository extends JpaRepository<Biblioteca, Long> {
 
-    Page<Biblioteca> findByLocationContainingIgnoreCase(
-            String location,
+    Page<Biblioteca> findByLocalizacaoContainingIgnoreCase(
+            String localizacao,
             Pageable pageable
     );
 

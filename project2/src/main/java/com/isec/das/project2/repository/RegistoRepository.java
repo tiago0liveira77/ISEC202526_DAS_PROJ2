@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface RegistoRepository extends JpaRepository<Registo, Long> {
 
@@ -22,5 +23,14 @@ public interface RegistoRepository extends JpaRepository<Registo, Long> {
             Long bibliotecaId,
             Pageable pageable
     );
-    List<Registo> findByPessoaIdAndEstado(Long pessoaId, Enum estado);
+    Page<Registo> findByPessoaIdAndBibliotecaId(
+            Long pessoaId,
+            Long bibliotecaId,
+            Pageable pageable
+    );
+    Optional<Registo> findByPessoaIdAndBibliotecaId(
+            Long pessoaId,
+            Long bibliotecaId
+    );
+
 }

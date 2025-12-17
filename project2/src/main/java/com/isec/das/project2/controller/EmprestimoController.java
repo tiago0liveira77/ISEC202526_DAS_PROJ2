@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.isec.das.project2.util.FieldMasks.aplicarFieldMask;
 
@@ -79,12 +78,15 @@ public class EmprestimoController {
         CopiaLivro copia = copiaRepository.findById(copiaId).orElse(null);
 
         if (pessoa == null || copia == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
 
         boolean registado = false;
 
-        for (Registo registo : registoRepository.findByPessoaId(pessoaId)) {
+        List<Registo> registos = registoRepository.findByPessoaId(pessoaId);
+
+        for (Registo registo : registos) {
+            //Se o copia livro existe na biblioteca e o utilizador tem registo ativo nessa biblioteca
             if (registo.getBiblioteca().getId().equals(copia.getBiblioteca().getId())
                     && registo.getEstado() == EstadoRegisto.ATIVO) {
                 registado = true;
@@ -93,6 +95,21 @@ public class EmprestimoController {
         }
 
         if (!registado) {
+            System.out.println("User sem registo/cancelado");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        boolean emprestado = false;
+
+        List<Emprestimo> emprestimos = emprestimoRepository.findByCopiaLivroId(copiaId);
+        for(Emprestimo emprestimo : emprestimos){
+            if(emprestimo.getEstado().equals(EstadoEmprestimo.ATIVO)){
+                emprestado = true;
+            }
+        }
+
+        if (emprestado) {
+            System.out.println("Livro emprestado");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -125,7 +142,7 @@ public class EmprestimoController {
     }
 
 
-    @PostMapping("/{id}:devolver")
+    @PatchMapping("/{id}:devolver")
     public ResponseEntity<?> devolver(@PathVariable Long id) {
 
         Optional<Emprestimo> optionalEmprestimo = emprestimoRepository.findById(id);

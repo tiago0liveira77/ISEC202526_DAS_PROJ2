@@ -12,7 +12,6 @@ import com.isec.das.project2.model.Livro;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SearchService {
